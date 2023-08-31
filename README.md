@@ -1,5 +1,11 @@
 # flask-celery-scheduler
 
+### *IMPORTANT
+- MongoDB instance should be running in port 27017
+- Redis instance should be running in port 6379
+
+---
+
 **flask-celery-scheduler** is a Flask REST API website that enables scheduling HTTP requests at specific times using Celery.
 
 ---

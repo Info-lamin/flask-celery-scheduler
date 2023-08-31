@@ -1,0 +1,15 @@
+[Unit]
+Description=Scheduler Celery Service
+After=network.target
+
+[Service]
+Type=forking
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/celery_scheduler/
+ExecStart=/bin/sh -c '/home/ubuntu/celery_scheduler/venv/bin/celery multi start "worker1" -A app.celery --pidfile="/var/run/celery/%n.pid" --logfile="/var/log/celery/%n%I.log" --loglevel=INFO'
+ExecStop=/bin/sh -c '/home/ubuntu/celery_scheduler/venv/bin/celery multi stopwait "worker1" --pidfile="/var/run/celery/%n.pid"'
+ExecReload=/bin/sh -c '/home/ubuntu/celery_scheduler/venv/bin/celery multi restart "worker1" -A app.celery --pidfile="/var/run/celery/%n.pid" --logfile="/var/log/celery/%n%I.log" --loglevel=INFO'
+
+[Install]
+WantedBy=multi-user.target
