@@ -4,3 +4,4 @@ celery
 requests
 pytz
 pymongo
+python-dotenv
