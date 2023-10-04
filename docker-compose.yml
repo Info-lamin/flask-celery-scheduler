@@ -1,18 +1,18 @@
-version: '3.8'
+version: "3.8"
 
 services:
   celery:
     build:
       context: .
     volumes:
-      - .:/app
+      - .:/myproject
     command: celery -A app.celery worker --loglevel=info
 
   flask:
     build:
       context: .
     volumes:
-      - .:/app
+      - .:/myproject
     command: python app.py
     ports:
       - 5022:5022

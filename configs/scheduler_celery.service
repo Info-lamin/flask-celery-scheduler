@@ -1,15 +1,23 @@
 [Unit]
-Description=Scheduler Celery Service
+Description=Celery Service
 After=network.target
 
 [Service]
 Type=forking
-User=ubuntu
-Group=ubuntu
-WorkingDirectory=/home/ubuntu/celery_scheduler/
-ExecStart=/bin/sh -c '/home/ubuntu/celery_scheduler/venv/bin/celery multi start "worker1" -A app.celery --pidfile="/var/run/celery/%n.pid" --logfile="/var/log/celery/%n%I.log" --loglevel=INFO'
-ExecStop=/bin/sh -c '/home/ubuntu/celery_scheduler/venv/bin/celery multi stopwait "worker1" --pidfile="/var/run/celery/%n.pid"'
-ExecReload=/bin/sh -c '/home/ubuntu/celery_scheduler/venv/bin/celery multi restart "worker1" -A app.celery --pidfile="/var/run/celery/%n.pid" --logfile="/var/log/celery/%n%I.log" --loglevel=INFO'
+User=infominsolutions
+Group=infominsolutions
+EnvironmentFile=/etc/default/celeryd
+WorkingDirectory=/home/infominsolutions
+ExecStart=/bin/sh -c '${CELERY_BIN} -A $CELERY_APP multi start $CELERYD_NODES \
+    --pidfile=${CELERYD_PID_FILE} --logfile=${CELERYD_LOG_FILE} \
+    --loglevel="${CELERYD_LOG_LEVEL}" $CELERYD_OPTS'
+ExecStop=/bin/sh -c '${CELERY_BIN} multi stopwait $CELERYD_NODES \
+    --pidfile=${CELERYD_PID_FILE} --logfile=${CELERYD_LOG_FILE} \
+    --loglevel="${CELERYD_LOG_LEVEL}"'
+ExecReload=/bin/sh -c '${CELERY_BIN} -A $CELERY_APP multi restart $CELERYD_NODES \
+    --pidfile=${CELERYD_PID_FILE} --logfile=${CELERYD_LOG_FILE} \
+    --loglevel="${CELERYD_LOG_LEVEL}" $CELERYD_OPTS'
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target

@@ -5,3 +5,5 @@ requests
 pytz
 pymongo
 python-dotenv
+sqlalchemy
+mysql-connector-python
