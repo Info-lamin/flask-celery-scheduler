@@ -1,5 +1,3 @@
-import env_variables
-import connection
 import os
 import sys
 import pytz
@@ -16,6 +14,8 @@ from celery.contrib.abortable import AbortableTask
 from sqlalchemy.orm.exc import NoResultFound
 sys.path.extend([os.path.dirname(os.path.realpath(__file__)),
                 os.path.dirname(os.path.dirname(os.path.realpath(__file__)))])
+import connection
+import env_variables
 
 app = Flask(__name__)
 celery = Celery(

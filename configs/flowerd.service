@@ -8,7 +8,7 @@ User=infominsolutions
 Group=infominsolutions
 EnvironmentFile=/etc/default/celeryd
 WorkingDirectory=/home/infominsolutions
-ExecStart=/bin/sh -c '${CELERY_BIN} flower -A $CELERY_APP \
+ExecStart=/bin/sh -c '${CELERY_BIN} -A $CELERY_APP flower \
     --address=$FLOWER_ADDR --port=$FLOWER_PORT --url_prefix=$FLOWER_URL_PREFIX \
     --basic-auth=$FLOWER_BASIC_AUTH'
 Restart=on-failure
