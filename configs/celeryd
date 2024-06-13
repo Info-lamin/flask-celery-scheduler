@@ -41,3 +41,8 @@ CELERYD_PID_FILE="/home/infominsolutions/scheduler_infomin_solutions/pid/%n.pid"
 # If enabled pid and log directories will be created if missing,
 # and owned by the userid/group configured.
 #CELERY_CREATE_DIRS=1
+
+FLOWER_ADDR=127.0.0.1
+FLOWER_PORT=5555
+FLOWER_URL_PREFIX=flower
+FLOWER_BASIC_AUTH="infominsolutions:rdT77H0c1h"

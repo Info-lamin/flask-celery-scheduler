@@ -1,3 +1,5 @@
+import env_variables
+import connection
 import os
 import sys
 import pytz
@@ -7,18 +9,18 @@ import requests
 from flask import Flask
 from flask import jsonify
 from flask import request
+from flask import redirect
 from flask import render_template
 from celery import Celery
 from celery.contrib.abortable import AbortableTask
 from sqlalchemy.orm.exc import NoResultFound
-sys.path.extend([os.path.dirname(os.path.realpath(__file__)), os.path.dirname(os.path.dirname(os.path.realpath(__file__)))])
-import connection
-import env_variables
+sys.path.extend([os.path.dirname(os.path.realpath(__file__)),
+                os.path.dirname(os.path.dirname(os.path.realpath(__file__)))])
 
 app = Flask(__name__)
 celery = Celery(
-    app.name, 
-    broker=env_variables.REDIS_BROKER_URI, 
+    app.name,
+    broker=env_variables.REDIS_BROKER_URI,
 )
 celery.conf.update(
     result_backend='scheduler_infomin_solutions.backend.MyResultBackend',
@@ -35,11 +37,11 @@ def trigger_webhook(url, security_code, payload, api_key):
     for _ in range(5):
         try:
             response = requests.post(
-                url = url,
-                headers = {
+                url=url,
+                headers={
                     'Authorization': security_code
                 },
-                json = payload,
+                json=payload,
                 verify=False
             )
             if response.status_code != 200:
@@ -60,12 +62,18 @@ def home():
 @app.route('/read/<string:task_id>', methods=['POST', 'GET'])
 def read(task_id=None):
     with connection.Session() as session:
-        api_key = request.headers.get('Authorization') or request.args.get('Authorization')
+        api_key = request.headers.get(
+            'Authorization') or request.args.get('Authorization')
         if task_id is None:
-            api_account = session.query(connection.ApiAccount).filter_by(api_key=api_key).first()
+            api_account = session.query(
+                connection.ApiAccount).filter_by(api_key=api_key).first()
             if api_account:
                 tasks = api_account.tasks
-                data = [{'task_id': task.task_id, 'result': task.result, 'state': task.state} for task in tasks]
+                data = [{
+                    'task_id': task.task_id,
+                    'result': task.result,
+                    'state': task.state
+                } for task in tasks]
                 return jsonify({
                     'success': True,
                     'tasks': data
@@ -76,7 +84,8 @@ def read(task_id=None):
                     'message': 'No API account found for this API key.'
                 })
         else:
-            task = session.query(connection.Task).join(connection.ApiAccount).filter(connection.ApiAccount.api_key == api_key, connection.Task.task_id == task_id).first()
+            task = session.query(connection.Task).join(connection.ApiAccount).filter(
+                connection.ApiAccount.api_key == api_key, connection.Task.task_id == task_id).first()
             if task:
                 return jsonify({
                     'success': True,
@@ -95,10 +104,13 @@ def read(task_id=None):
 def create_task():
     with connection.Session() as session:
         try:
-            api_key = request.headers.get('Authorization') or request.args.get('Authorization')
-            api_account = session.query(connection.ApiAccount).filter_by(api_key=api_key).one()
+            api_key = request.headers.get(
+                'Authorization') or request.args.get('Authorization')
+            api_account = session.query(
+                connection.ApiAccount).filter_by(api_key=api_key).one()
 
-            timestamp = request.json.get('timestamp', datetime.datetime.now().timestamp())
+            timestamp = request.json.get(
+                'timestamp', datetime.datetime.now().timestamp())
             url = request.json.get('url')
             payload = request.json.get('payload', {})
             security_code = request.json.get('security_code')
@@ -113,9 +125,10 @@ def create_task():
                     'success': False,
                     'message': 'security_code is not passed and it is a required parameter'
                 })
-            schedule_time = datetime.datetime.fromtimestamp(float(timestamp), pytz.timezone('Asia/Kolkata')).isoformat()
+            schedule_time = datetime.datetime.fromtimestamp(
+                float(timestamp), pytz.timezone('Asia/Kolkata')).isoformat()
             my_task = trigger_webhook.apply_async(
-                args=(url, security_code, payload, api_account.api_key), 
+                args=(url, security_code, payload, api_account.api_key),
                 eta=schedule_time
             )
 
@@ -134,13 +147,15 @@ def create_task():
 def delete_task():
     with connection.Session() as session:
         task_id = request.json.get('task_id', None)
-        api_key = request.headers.get('Authorization') or request.args.get('Authorization')
+        api_key = request.headers.get(
+            'Authorization') or request.args.get('Authorization')
         if task_id is None:
             return jsonify({
                 'success': False,
                 'message': 'task_id is not passed and it is a required parameter'
             })
-        task = session.query(connection.Task).join(connection.ApiAccount).filter(connection.ApiAccount.api_key == api_key, connection.Task.task_id == task_id).first()
+        task = session.query(connection.Task).join(connection.ApiAccount).filter(
+            connection.ApiAccount.api_key == api_key, connection.Task.task_id == task_id).first()
         if task:
             my_task = trigger_webhook.AsyncResult(task.task_id)
             my_task.abort()
@@ -153,6 +168,12 @@ def delete_task():
                 'success': False,
                 'message': 'Task not found.'
             })
+
+
+@app.route('/flower')
+def flower():
+    return redirect('/flower/')
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5022)

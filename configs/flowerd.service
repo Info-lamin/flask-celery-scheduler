@@ -1,0 +1,17 @@
+[Unit]
+Description=Flower Service
+After=network.target
+
+[Service]
+Type=simple
+User=infominsolutions
+Group=infominsolutions
+EnvironmentFile=/etc/default/celeryd
+WorkingDirectory=/home/infominsolutions
+ExecStart=/bin/sh -c '${CELERY_BIN} flower -A $CELERY_APP \
+    --address=$FLOWER_ADDR --port=$FLOWER_PORT --url_prefix=$FLOWER_URL_PREFIX \
+    --basic-auth=$FLOWER_BASIC_AUTH'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
